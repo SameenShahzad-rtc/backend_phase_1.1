@@ -1,112 +1,63 @@
-# Alembic Migrations 🚀  
-*Database Schema Management with FastAPI*
+# Backend Phase 1 🚀  
+* FastAPI Training Project*
 
-This document provides step-by-step instructions for using **Alembic** to manage database migrations in a FastAPI project.  
-Alembic helps track changes to your database schema in a versioned, controlled way.
+This repository contains backend development work done during a structured FastAPI training.  
+ The goal is to build a production-ready FastAPI app with database integration and proper API design.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Install Alembic](#install-alembic)  
-- [Initialize Alembic](#initialize-alembic)  
-- [Configure Alembic](#configure-alembic)  
-- [Create a Migration](#create-a-migration)  
-- [Apply Migration](#apply-migration)  
-- [Revert Migration](#revert-migration)  
-- [Tips & Best Practices](#tips--best-practices)  
-
+ 
+  - [Day 1 – FastAPI Fundamentals](#day-1-fastapi-fundamentals)  
+  - [Day 2 – Pydantic & Validation](#day-2-pydantic-&-validation)  
+  - [Day 3 – Database & CRUD](#day-3-database-&-crud)  
+  
 ---
 
-### 🗓 Install Alembic
+### 🗓 Day 3 – Database + CRUD + Async
 
-## Install Alembic using pip:
+**Concepts Covered:**
 
-
-- pip install alembic
-## 🗓 Initialize Alembic
-
-Initialize Alembic inside your project:
-
-alembic init migration
+- What is ORM?
+ORM (Object–Relational Mapping) is a technique that allows you to interact with a relational database using programming language objects (like Python classes) instead of writing raw SQL queries.
 
 
-This will create a migration folder containing:
+- DB connection with FastAPI
 
-alembic.ini – configuration file
+Two main things:
+-sqlalchemy → ORM
+ORM (like SQLAlchemy) is a tool that converts your Python objects into SQL queries.
+-psycopg2-binary → PostgreSQL driver (connector)
+A database driver is like a translator/connector between Python and the actual database (PostgreSQL, MySQL, etc.).
+    • Examples for PostgreSQL: psycopg2, asyncpg.
+    • Examples for MySQL: mysqlclient, pymysql.
 
-versions/ – folder for migration scripts
-
-Note:
-Each migration script in versions/ has a unique revision ID.
-
-upgrade() → applies the changes
-
-downgrade() → reverts the changes
-
-## 🗓 Configure Alembic
-Update alembic.ini
-
-Set your database URL:
-
-sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
-
-## Update alembic/env.py
-
-Include your models and metadata:
-
-from database import Base
-from config.config import DATABASE_URL
-from models.user import User
-from models.project import Project
-from models.task import Task
-
-from sqlalchemy import engine_from_config, pool
-from alembic import context
-
-# Alembic Config object
-config = context.config
-
-# Set database URL
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
-
-# Target metadata for autogenerate
-target_metadata = Base.metadata
-
-## 🗓 Create a Migration
-
-Generate a new migration to add an age column:
-
-alembic revision --autogenerate -m "add age column to user table"
+ Install Required Packages 
+pip install fastapi uvicorn sqlalchemy psycopg2-binary
 
 
-Alembic will create a file in migration/versions/. Example content:
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker,declarative_base
 
-def upgrade() -> None:
-    """Upgrade schema."""
-    op.add_column('users', sa.Column('age', sa.Integer(), nullable=False, server_default='20'))
-   
-def downgrade() -> None:
-    """Downgrade schema."""
-    op.drop_column('users', 'age')
+DATABASE_URL = "postgresql://username:password@localhost/fastapi_db"
 
-## 🗓 Apply Migration
-
-Apply changes to the database:
-
-alembic upgrade head
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+Explanation
+    • create_engine() → Connects SQLAlchemy to PostgreSQL
+    • SessionLocal → Creates database sessions
+    • Base → Parent class for all ORM models
+Think of Base as foundation of all tables.
 
 
-Check your database in pgAdmin 4:
+**Mini Project – Task API with Database**
 
-The users table should now include the age column.
+Tasks to implement:
 
-## 🗓 Revert Migration
+- Connect PostgreSQL
+- Create `Task` table
+- CRUD endpoints using DB and dependency injection
 
-To undo the last migration:
-
-alembic downgrade -1
-
-
-The age column will be removed from the users table.
 
