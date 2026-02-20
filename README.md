@@ -1,112 +1,66 @@
-# Alembic Migrations 🚀  
-*Database Schema Management with FastAPI*
 
-This document provides step-by-step instructions for using **Alembic** to manage database migrations in a FastAPI project.  
-Alembic helps track changes to your database schema in a versioned, controlled way.
+# Backend Phase 1.1 🚀  
+* FastAPI Training Project*
+
+This repository contains backend development work done during a structured FastAPI training.  
+ The goal is to build a production-ready FastAPI app with database integration and proper API design.
 
 ---
 
 ## 📋 Table of Contents
-
-- [Install Alembic](#install-alembic)  
-- [Initialize Alembic](#initialize-alembic)  
-- [Configure Alembic](#configure-alembic)  
-- [Create a Migration](#create-a-migration)  
-- [Apply Migration](#apply-migration)  
-- [Revert Migration](#revert-migration)  
-- [Tips & Best Practices](#tips--best-practices)  
+ 
+  - [Day 2 – Pydantic & Validation](#day-2-pydantic-&-validation)  
 
 ---
 
-### 🗓 Install Alembic
+### 🗓 Day 2 – Pydantic + Validation + Structure
 
-## Install Alembic using pip:
+**Concepts Covered:**
 
+- # Pydantic models
+Purpose: Define data structure + validation for requests and responses.
+Pydantic ensures the data matches the expected type and automatically raises errors for invalid input.
 
-- pip install alembic
-## 🗓 Initialize Alembic
+- # Request validation
 
-Initialize Alembic inside your project:
+FastAPI automatically validates incoming request data using Pydantic models. 
+Wrong type → automatic error
+Missing required field → automatic error
 
-alembic init migration
+- # Response models
+what you api returns
+sometime we donot want to return all data like 
 
+- # Status codes
+FastAPI allows you to set correct HTTP status codes. 
+200 → OK
+201 → Created
+404 → Not Found
+400 → Bad Request
 
-This will create a migration folder containing:
+from fastapi import status
 
-alembic.ini – configuration file
+- # HTTPException: used to raise errors manually.
+- # Modular structure
+    • Keeps code organized
+    • Makes it scalable and maintainable
+    • Each file has a single responsibility
 
-versions/ – folder for migration scripts
+- # APIRouter
+Used to separate routes into modules. 
+from fastapi import APIRouter
 
-Note:
-Each migration script in versions/ has a unique revision ID.
-
-upgrade() → applies the changes
-
-downgrade() → reverts the changes
-
-## 🗓 Configure Alembic
-Update alembic.ini
-
-Set your database URL:
-
-sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
-
-## Update alembic/env.py
-
-Include your models and metadata:
-
-from database import Base
-from config.config import DATABASE_URL
-from models.user import User
-from models.project import Project
-from models.task import Task
-
-from sqlalchemy import engine_from_config, pool
-from alembic import context
-
-# Alembic Config object
-config = context.config
-
-# Set database URL
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
-
-# Target metadata for autogenerate
-target_metadata = Base.metadata
-
-## 🗓 Create a Migration
-
-Generate a new migration to add an age column:
-
-alembic revision --autogenerate -m "add age column to user table"
+- # Environment variables:
+Purpose: create a separate file to store secrets/configuration safely (DB URLs, API keys, secret keys). 
 
 
-Alembic will create a file in migration/versions/. Example content:
+**Mini Project – Refactor Task API**
 
-def upgrade() -> None:
-    """Upgrade schema."""
-    op.add_column('users', sa.Column('age', sa.Integer(), nullable=False, server_default='20'))
-   
-def downgrade() -> None:
-    """Downgrade schema."""
-    op.drop_column('users', 'age')
+Include:
 
-## 🗓 Apply Migration
+- Pydantic models: `TaskCreate`, `TaskResponse`
+- Validation: title must be 3+ characters
+- Proper status codes
+- Routes in APIRouter
 
-Apply changes to the database:
-
-alembic upgrade head
-
-
-Check your database in pgAdmin 4:
-
-The users table should now include the age column.
-
-## 🗓 Revert Migration
-
-To undo the last migration:
-
-alembic downgrade -1
-
-
-The age column will be removed from the users table.
-
+---
