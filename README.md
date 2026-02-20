@@ -1,112 +1,82 @@
-# Alembic Migrations 🚀  
-*Database Schema Management with FastAPI*
+# Backend Phase 1 🚀  
+* FastAPI Training Project*
 
-This document provides step-by-step instructions for using **Alembic** to manage database migrations in a FastAPI project.  
-Alembic helps track changes to your database schema in a versioned, controlled way.
+This repository contains backend development work done during a structured FastAPI training.  
+ The goal is to build a production-ready FastAPI app with database integration and proper API design.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Install Alembic](#install-alembic)  
-- [Initialize Alembic](#initialize-alembic)  
-- [Configure Alembic](#configure-alembic)  
-- [Create a Migration](#create-a-migration)  
-- [Apply Migration](#apply-migration)  
-- [Revert Migration](#revert-migration)  
-- [Tips & Best Practices](#tips--best-practices)  
+ 
+  - [Day 1 – FastAPI Fundamentals](#day-1-fastapi-fundamentals)  
+  
+### 🗓 Day 1 – FastAPI Fundamentals
+
+**Concepts Covered:**
+
+- **What is FastAPI?**
+
+Fast api is a  modern and fast web framework for building APIs with Python. 
+API = Application Programming Interface → It allows two applications to communicate with each other. 
+It is based on Python type hints, which makes your code cleaner and reduces bugs. 
+----Python is a dynamically typed language → normally, you don’t have to declare the type of a variable.Type hints let you optionally specify the type of variables, function parameters, and return values.They help humans and tools (like editors, linters, and FastAPI) understand your code better, but Python itself does not enforce types at runtime 
+Example
+age: int = 25
+
+# String type
+name: str = "Mubeen"
+def add(a: int, b: int) -> int:
+    return a + b
+
+result = add(5, 10)
+print(result)
+
+-> int means this function returns an integer.
+
+-**ASGI vs WSGI (high-level)**
+
+# WSGI = Web Server Gateway Interface
+It’s a standard “bridge” between Python web apps and web servers.Basically: WSGI tells Python how to talk to the web server and vice versa.
+WSGI is synchronous:
+-Handles one request at a time per thread/process.
+-Good for normal web pages where users just request HTML or JSON.
+-Not ideal for real-time apps like chat, WebSockets, or live updates.
+How it works:
+
+Browser -> Web Server -> WSGI Interface -> Python App -> WSGI -> Web Server -> Browser
+ The WSGI interface defines how the server passes requests to Python and how Python sends back responses.
+
+- Installing FastAPI + Uvicorn
+- Basic app structure
+- HTTP methods (GET, POST, PUT, DELETE)
+- Path parameters
+- Query parameters
+- Request body
+- Automatic docs (Swagger)
+# What is ASGI?
+ASGI = Asynchronous Server Gateway Interface
+It’s the modern version of WSGI, designed for both synchronous and asynchronous apps.Supports real-time features like:
+-WebSockets (chat apps, live updates)
+-Background tasks
+Key points about ASGI
+-ASGI is asynchronous:
+-Can handle many requests at the same time.
+-Works with modern web frameworks like FastAPI, Starlette, Django Channels.
+How it works:
+
+Browser -> ASGI Server -> ASGI Interface -> Python App -> ASGI -> Server -> Browser
+
+**Mini Project – Simple Task API**
+
+Build endpoints:
+
+- `GET /` → Welcome message  
+- `GET /tasks` → Return list of tasks  
+- `POST /tasks` → Add a task  
+- `GET /tasks/{task_id}` → Get a single task  
+- `DELETE /tasks/{task_id}` → Delete a task
+
+
 
 ---
-
-### 🗓 Install Alembic
-
-## Install Alembic using pip:
-
-
-- pip install alembic
-## 🗓 Initialize Alembic
-
-Initialize Alembic inside your project:
-
-alembic init migration
-
-
-This will create a migration folder containing:
-
-alembic.ini – configuration file
-
-versions/ – folder for migration scripts
-
-Note:
-Each migration script in versions/ has a unique revision ID.
-
-upgrade() → applies the changes
-
-downgrade() → reverts the changes
-
-## 🗓 Configure Alembic
-Update alembic.ini
-
-Set your database URL:
-
-sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
-
-## Update alembic/env.py
-
-Include your models and metadata:
-
-from database import Base
-from config.config import DATABASE_URL
-from models.user import User
-from models.project import Project
-from models.task import Task
-
-from sqlalchemy import engine_from_config, pool
-from alembic import context
-
-# Alembic Config object
-config = context.config
-
-# Set database URL
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
-
-# Target metadata for autogenerate
-target_metadata = Base.metadata
-
-## 🗓 Create a Migration
-
-Generate a new migration to add an age column:
-
-alembic revision --autogenerate -m "add age column to user table"
-
-
-Alembic will create a file in migration/versions/. Example content:
-
-def upgrade() -> None:
-    """Upgrade schema."""
-    op.add_column('users', sa.Column('age', sa.Integer(), nullable=False, server_default='20'))
-   
-def downgrade() -> None:
-    """Downgrade schema."""
-    op.drop_column('users', 'age')
-
-## 🗓 Apply Migration
-
-Apply changes to the database:
-
-alembic upgrade head
-
-
-Check your database in pgAdmin 4:
-
-The users table should now include the age column.
-
-## 🗓 Revert Migration
-
-To undo the last migration:
-
-alembic downgrade -1
-
-
-The age column will be removed from the users table.
-
