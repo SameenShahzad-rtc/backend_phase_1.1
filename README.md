@@ -1,112 +1,38 @@
-# Alembic Migrations 🚀  
-*Database Schema Management with FastAPI*
+# Role-Based Authentication (RBAC)
 
-This document provides step-by-step instructions for using **Alembic** to manage database migrations in a FastAPI project.  
-Alembic helps track changes to your database schema in a versioned, controlled way.
+Today, I implemented Role-Based Access Control (RBAC) in the project. The system now supports two roles:  
 
----
+- **Admin**  
+- **User**  
 
-## 📋 Table of Contents
-
-- [Install Alembic](#install-alembic)  
-- [Initialize Alembic](#initialize-alembic)  
-- [Configure Alembic](#configure-alembic)  
-- [Create a Migration](#create-a-migration)  
-- [Apply Migration](#apply-migration)  
-- [Revert Migration](#revert-migration)  
-- [Tips & Best Practices](#tips--best-practices)  
+The access to routes and functionalities is controlled based on these roles.
 
 ---
 
-### 🗓 Install Alembic
+## Role-Based Authentication Setup
 
-## Install Alembic using pip:
+- Created a **Role** table.  
+- Manually inserted roles (`admin`, `user`) into the database.  
+- After the first registration, manually changed the first user’s role to **Admin**.  
 
+---
 
-- pip install alembic
-## 🗓 Initialize Alembic
+## Admin Access Control
 
-Initialize Alembic inside your project:
+### Resource: User
+- **User Registration** – Accessible by both Admin (to create user) and User  
+- **Login System** – Accessible by both Admin and User  
+- **Show All Users** – Only Admin can view users  
+- **Delete User** – Only Admin can delete users  
 
-alembic init migration
+### Resource: Project
+- **Create Project** – Only Admin  
+- **Show All Projects** – Accessible by both Admin and User (users see only assigned projects)  
+- **Show Single Project** – Accessible by both Admin and User (users see only assigned project)  
+- **Assign Project to User** – Admin assigns projects to users  
 
-
-This will create a migration folder containing:
-
-alembic.ini – configuration file
-
-versions/ – folder for migration scripts
-
-Note:
-Each migration script in versions/ has a unique revision ID.
-
-upgrade() → applies the changes
-
-downgrade() → reverts the changes
-
-## 🗓 Configure Alembic
-Update alembic.ini
-
-Set your database URL:
-
-sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
-
-## Update alembic/env.py
-
-Include your models and metadata:
-
-from database import Base
-from config.config import DATABASE_URL
-from models.user import User
-from models.project import Project
-from models.task import Task
-
-from sqlalchemy import engine_from_config, pool
-from alembic import context
-
-# Alembic Config object
-config = context.config
-
-# Set database URL
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
-
-# Target metadata for autogenerate
-target_metadata = Base.metadata
-
-## 🗓 Create a Migration
-
-Generate a new migration to add an age column:
-
-alembic revision --autogenerate -m "add age column to user table"
-
-
-Alembic will create a file in migration/versions/. Example content:
-
-def upgrade() -> None:
-    """Upgrade schema."""
-    op.add_column('users', sa.Column('age', sa.Integer(), nullable=False, server_default='20'))
-   
-def downgrade() -> None:
-    """Downgrade schema."""
-    op.drop_column('users', 'age')
-
-## 🗓 Apply Migration
-
-Apply changes to the database:
-
-alembic upgrade head
-
-
-Check your database in pgAdmin 4:
-
-The users table should now include the age column.
-
-## 🗓 Revert Migration
-
-To undo the last migration:
-
-alembic downgrade -1
-
-
-The age column will be removed from the users table.
-
+### Resource: Tasks
+- **Create Task** – Only Admin  
+- **Show Tasks** – Accessible by both Admin and User  
+- **Update Task Status** – Both Admin and User can update task (e.g., Pending → Completed)  
+- **Delete Task** – Only Admin can delete tasks  
