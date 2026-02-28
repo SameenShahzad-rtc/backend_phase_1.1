@@ -5,14 +5,14 @@ from models.task import Task
 from models.project import Project
 from models.user import User
 from jwt import get_current_user, role_required
-from schemas.task_schema import tasks,tasksIn
+from schemas.task_schema import TaskOut,tasksIn
 from typing import List
 from handlers.task_handler import create_task,get_project_tasks,update_task,delete_task
 
 
 
 #admin create task,delete task,assign task
-#user can see tasks
+#user can see tasks,update task and can create sub tasks
 
 # POST /projects/{id}/tasks
 # GET /projects/{id}/tasks
@@ -23,14 +23,14 @@ from handlers.task_handler import create_task,get_project_tasks,update_task,dele
 
 task_routes=APIRouter()
 
-@task_routes.post('/projects/{P_id}/tasks',response_model=tasks)
+@task_routes.post('/projects/{P_id}/tasks',response_model=TaskOut)
 def createTask(P_id,t:tasksIn,u: User = Depends(role_required("admin")),db:Session=Depends(get_db)):
     
   
     return create_task(db,t.title,t.des,t.status,P_id,u.id)
 
  #get all task of one project
-@task_routes.get('/projects/{p_id}/tasks',response_model=List[tasks])
+@task_routes.get('/projects/{p_id}/tasks',response_model=List[TaskOut])
 def show_task(p_id:int , u: User = Depends(get_current_user),db:Session=Depends(get_db)):
 
 
@@ -38,7 +38,7 @@ def show_task(p_id:int , u: User = Depends(get_current_user),db:Session=Depends(
 
 
 # PUT /tasks/{task_id}
-@task_routes.put('/tasks/{task_id}',response_model=tasks)
+@task_routes.put('/tasks/{task_id}',response_model=TaskOut)
 def updateTask(t_id:int ,t:tasksIn,db:Session=Depends(get_db), u: User = Depends(get_current_user)):
 
     

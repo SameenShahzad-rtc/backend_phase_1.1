@@ -50,22 +50,22 @@ def Del_Projects(id:int,u:User=Depends(role_required("admin")), d : Session=Depe
    
    return delete_project(d,id,u)
 
-@project_routes.post('/assign/{project_id}/user/{user_id}',response_model=Projectinfo)
-def assign_project_to_user(project_id: int, user_id: int, db: Session = Depends(get_db),assigner:User=Depends(role_required("admin"))):
+# @project_routes.post('/assign/{project_id}/user/{user_id}',response_model=Projectinfo)
+# def assign_project_to_user(project_id: int, user_id: int, db: Session = Depends(get_db),assigner:User=Depends(role_required("admin"))):
    
-    project = get_single_project(db, project_id, assigner)
-    if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+#     project = get_single_project(db, project_id, assigner)
+#     if not project:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
-    user =get_user_by_id(db, user_id)   
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
+#     user =get_user_by_id(db, user_id)   
+#     if not user:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
     
-    if  user.role_name != "user":
-        raise HTTPException(status_code=403, detail="Project can only be assigned to normal users")
+#     if  user.role_name != "user":
+#         raise HTTPException(status_code=403, detail="Project can only be assigned to normal users")
     
 
-    project.assigned_to = user_id
-    db.commit()
-    db.refresh(project)
-    return project
+#     project.assigned_to = user_id
+#     db.commit()
+#     db.refresh(project)
+#     return project

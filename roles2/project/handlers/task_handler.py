@@ -57,20 +57,31 @@ def update_task(db: Session, task_id: int, user: User,t:tasksIn):
         Task.id == task_id,
         Project.owner_id == user.id
         ).first()
+        task.title = t.title
+        task.des = t.des
     else:
         task = db.query(Task).join(Project).filter(
         Task.id == task_id,
         Task.assigned_to == user.id
         ).first()
+
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found or unauthorized"
         )
-
-    task.title = t.title
-    task.des = t.des
-    task.status = t.status
+    if user.role_name == "admin":
+        # Admin can update everything
+        task.title = t.title
+        task.des   = t.des
+        task.status = t.status
+    else:
+        # Regular user → only status
+        task.status = t.status
+        #  warning if client tried to change other fields
+        if t.title != task.title or t.des != task.des:
+            
+             raise HTTPException(422, "Regular users can only update status")
 
     db.commit()
     db.refresh(task)

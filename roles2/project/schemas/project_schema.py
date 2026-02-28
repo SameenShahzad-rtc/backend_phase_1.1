@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from schemas.task_schema import TaskOut
 
 
 
@@ -30,3 +30,11 @@ class Projectfind(BaseModel):
     
     # class Config:
     #     from_attributes = True  
+class ProjectWithTasks(BaseModel):
+    id: int
+    name: str
+    des: str
+    tasks: list[TaskOut] = []
+
+    class Config:
+        from_attributes = True

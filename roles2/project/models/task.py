@@ -18,3 +18,9 @@ class Task(Base):
     project_id = Column(Integer, ForeignKey("projects.id"))
 
     project = relationship("Project", back_populates="tasks")
+    assigned_user = relationship(
+        "User",
+        back_populates="assigned_tasks",
+        # foreign_keys=[assigned_to]
+    )
+    subtasks = relationship("Subtask", back_populates="task",cascade="all, delete-orphan")

@@ -13,9 +13,9 @@ class Project(Base):
     name = Column(String, nullable=False)
     des= Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
-    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+    # assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
     
    
     tasks = relationship("Task", back_populates="project",cascade="all, delete")
     owner = relationship("User", back_populates="owned_projects", foreign_keys=[owner_id])
-    assigned_user = relationship("User", back_populates="assigned_projects", foreign_keys=[assigned_to])
+    # assigned_user = relationship("User", back_populates="assigned_projects", foreign_keys=[assigned_to])
