@@ -29,16 +29,17 @@ def get_user_projects(db: Session, user: User):
     
     if user.role_name == "admin":
         # Manager sees projects he owns
-        # projects = db.query(Project).filter(Project.owner_id == user.id).all()
-        projects = (
-        db.query(Project)
-        .options(
-            joinedload(Project.tasks)
-            .joinedload(Task.assigned_user)
-        )
-        .filter(Project.owner_id == user.id)
-        .all()
-    )
+         projects = db.query(Project).filter(Project.owner_id == user.id).all()
+    # else:
+    #     projects = (
+    #     db.query(Project)
+    #     .options(
+    #         joinedload(Project.tasks)
+    #         .joinedload(Task.assigned_user)
+    #     )
+    #     .filter(Project.owner_id == user.id)
+    #     .all()
+    #  )
     # else:
     #     # Team Lead sees projects assigned to him
     #     projects = db.query(Project).filter(Project.assigned_to == user.id).all()

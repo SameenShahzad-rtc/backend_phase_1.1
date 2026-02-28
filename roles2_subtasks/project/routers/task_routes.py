@@ -7,7 +7,7 @@ from models.user import User
 from jwt import get_current_user, role_required
 from schemas.task_schema import TaskOut,tasksIn
 from typing import List
-from handlers.task_handler import create_task,get_project_tasks,update_task,delete_task
+from handlers.task_handler import create_task,get_tasks_for_user,update_task,delete_task,assign_task_to_user
 
 
 
@@ -29,13 +29,7 @@ def createTask(P_id,t:tasksIn,u: User = Depends(role_required("admin")),db:Sessi
   
     return create_task(db,t.title,t.des,t.status,P_id,u.id)
 
- #get all task of one project
-@task_routes.get('/projects/{p_id}/tasks',response_model=List[TaskOut])
-def show_task(p_id:int , u: User = Depends(get_current_user),db:Session=Depends(get_db)):
-
-
-    return get_project_tasks(db,p_id,u)
-
+ 
 
 # PUT /tasks/{task_id}
 @task_routes.put('/tasks/{task_id}',response_model=TaskOut)
@@ -49,6 +43,25 @@ def updateTask(t_id:int ,t:tasksIn,db:Session=Depends(get_db), u: User = Depends
 def del_task(t_id:int ,db:Session=Depends(get_db),u: User = Depends(role_required("admin"))):
 
     return delete_task(db, t_id,u)
+
+
+
+
+# Assign task to user (admin only)
+@task_routes.post("/assign/{task_id}/user/{user_id}", response_model=TaskOut)
+def assign_task(task_id: int, user_id: int, db: Session = Depends(get_db), assigner: User = Depends(get_current_user)):
+    if assigner.role_name != "admin":
+        raise HTTPException(status_code=403, detail="Only admin can assign tasks")
+    task = assign_task_to_user(db, task_id, user_id)
+    return task
+
+# Get tasks for current user or admin
+@task_routes.get("/mytasks", response_model=List[TaskOut])
+def show_tasks(db: Session = Depends(get_db), u: User = Depends(get_current_user)):
+    tasks = get_tasks_for_user(db, u)
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found")
+    return tasks
 
 
     

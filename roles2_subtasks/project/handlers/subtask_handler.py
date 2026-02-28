@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from jwt_authentication.project.schemas.task_schema import tasksIn
+from schemas.task_schema import tasksIn
 from models.subtasks import Subtask
 from schemas.subtasks_schema import SubtaskIn,SubtaskOut
 from models.task import Task
@@ -34,20 +34,20 @@ def create_subtask(db: Session, task_id: int, user: User, s:SubtaskIn):
     db.refresh(subtask)
     return subtask
 
-def get_task_subtask(db: Session, task_id: int, user:User):
 
-    if user.role_name=="admin":
-
-        subtasks = db.query(Task).filter(Task.task_id == task_id).all()
+def get_task_subtask(db: Session, task_id: int, user):
+    # Admin sees all subtasks of tasks in projects they own
+    if user.role_name == "admin":
+        subtasks = db.query(Subtask).join(Task).filter(Task.id == task_id, Task.project.has(owner_id=user.id)).all()
     else:
-        subtasks = db.query(Task).filter(Task.task_id == task_id, Task.assigned_to == user.id).all()
+        # Regular user sees subtasks only for tasks assigned to them
+        subtasks = db.query(Subtask).join(Task).filter(Task.id == task_id, Task.assigned_to == user.id).all()
 
-    if not  subtasks:
+    if not subtasks:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No subtasks found"
         )
-
     return subtasks
 
 

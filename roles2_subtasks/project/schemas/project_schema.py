@@ -18,7 +18,7 @@ class Projectinfo(BaseModel):
     name:str=Field(...,min_length=3)
     des :str=Field(...,min_length=3)   
     owner_id:int
-    assigned_to:int|None
+    # assigned_to:int|None
     
     class Config:
         from_attributes = True  

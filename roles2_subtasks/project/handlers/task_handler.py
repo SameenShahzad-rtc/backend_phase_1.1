@@ -1,8 +1,8 @@
 # handlers/task_handler.py
-
+from database import get_db
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from schemas.task_schema import tasks,tasksIn
+from schemas.task_schema import tasksIn
 from models.task import Task
 from models.project import Project
 from models.user import User
@@ -33,22 +33,35 @@ def create_task(db: Session, title: str, des: str, status_value: str, project_id
     return new_task
 
 
-def get_project_tasks(db: Session, project_id: int, user:User):
+def assign_task_to_user(db: Session, task_id: int, user_id: int):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-    if user.role_name=="admin":
+    user = db.query(User).filter(User.id == user_id, User.role_name == "user").first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found or not a normal user")
 
-        tasks = db.query(Task).filter(Task.project_id == project_id).all()
+    task.assigned_to = user.id
+    db.commit()
+    db.refresh(task)
+    return task
+
+def get_tasks_for_user(db: Session, user: User):
+    if user.role_name == "admin":
+        # Admin sees all tasks they created via project
+        return db.query(Task).join(Project).filter(Project.owner_id == user.id).all()
     else:
-        tasks = db.query(Task).filter(Task.project_id == project_id, Task.assigned_to == user.id).all()
+        # Regular user sees only tasks assigned to them
+        return db.query(Task).filter(Task.assigned_to == user.id).all()
 
-    if not tasks:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No tasks found"
-        )
+# def show_my_tasks(db: Session, u: User):
 
-    return tasks
 
+#     tasks = db.query(Task).filter(Task.assigned_to == u.id).all()
+#     if not tasks:
+#         raise HTTPException(status_code=404, detail="No tasks assigned to you")
+#     return tasks
 
 def update_task(db: Session, task_id: int, user: User,t:tasksIn):
 

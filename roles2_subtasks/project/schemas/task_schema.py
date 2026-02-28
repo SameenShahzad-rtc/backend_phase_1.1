@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Literal
-from user_schema import Userout
+from schemas.user_schema import Userout
 
 TaskStatus = Literal["pending", "in_progress", "completed"]
 
@@ -19,9 +19,10 @@ class TaskOut(BaseModel):
     id: int
     title: str
     des: str
-    status: TaskStatus = "pending"
+    status: TaskStatus
     project_id: int
-    assigned_user: Userout | None
+    assigned_user: Userout | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True  # Pydantic V2
+    }

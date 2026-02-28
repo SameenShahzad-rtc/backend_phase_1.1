@@ -27,7 +27,7 @@ def createProject(p:Projectin,user:User=Depends(role_required("admin")), d : Ses
     return create_project(d,p.name,p.des,user.id)
 
 @project_routes.get('/',response_model=list[Projectinfo])
-def Show_Projects(user:User=Depends(get_current_user), d : Session=Depends(get_db)):
+def Show_Projects(user:User=Depends(role_required("admin")), d : Session=Depends(get_db)):
 
   
     proj=get_user_projects(d,user)
@@ -36,7 +36,7 @@ def Show_Projects(user:User=Depends(get_current_user), d : Session=Depends(get_d
 
 
 @project_routes.get('/{id}',response_model=Projectinfo)
-def Show_single_Projects(id:int,u:User=Depends(get_current_user), d : Session=Depends(get_db)):
+def Show_single_Projects(id:int,u:User=Depends(role_required("admin")), d : Session=Depends(get_db)):
 
   
    proj=get_single_project(d,id,u)

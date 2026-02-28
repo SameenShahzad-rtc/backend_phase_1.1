@@ -6,7 +6,7 @@ from models.user import User
 from models.project import Project 
 from models.task import Task 
 from models.role import Role
-
+from models.subtasks import Subtask 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -45,7 +45,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    config.set_main_option("sqlalchemy.url", DATABASE_URL) 
+    url=config.set_main_option("sqlalchemy.url", DATABASE_URL) 
     target_metadata = Base.metadata 
     context.configure(
         url=url,

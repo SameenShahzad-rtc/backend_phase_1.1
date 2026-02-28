@@ -37,8 +37,6 @@ def deleteSubtask(subtask_id: int, db: Session = Depends(get_db), user: User = D
     
     return delete_subtask(db, subtask_id, user)
 
-@subtask_routes.get('/substask/{task_id}/subtasks', response_model=List[SubtaskOut])
-def getTaskSubtask(db: Session, task_id: int, user:User):
-
-
-    return  get_task_subtask(db, task_id, user)
+@subtask_routes.get('/subtasks/{task_id}', response_model=List[SubtaskOut])
+def getTaskSubtask(task_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return get_task_subtask(db, task_id, user)
