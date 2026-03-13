@@ -5,7 +5,6 @@ from database import Base
 
 
 
-#creating table structure or model
 class Organization(Base):
     __tablename__ = "organization"
 

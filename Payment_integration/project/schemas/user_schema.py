@@ -50,9 +50,7 @@ class Token(BaseModel):
     message:str
 
 class TokenData(BaseModel):
-    username: Optional[str] = None  # or user_id if preferred
-
-
+    username: Optional[str] = None  
 
 class Userupdate(BaseModel):
     #id :int

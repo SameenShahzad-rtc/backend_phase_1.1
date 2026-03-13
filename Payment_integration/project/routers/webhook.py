@@ -1,20 +1,5 @@
 
-
-
-
-from fastapi import APIRouter, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
-from database import get_db
 from jwt import get_current_user
-from models.user import User
-from config.config import STRIPE_WEBHOOK_SECRET
-import stripe
-import logging
-
-
-# bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJvcmcxX3VzZXIyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NzMzMjEyMjB9.d2y8EhL3S_wB3C7hHKUEX04USPYyfbOoMW_KpZWnrhQ
-
 from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -24,19 +9,26 @@ from config.config import STRIPE_WEBHOOK_SECRET
 import stripe
 import logging
 
-# Set up logging
+
+
+# bearer
+
+# for stipe customer logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 webhook_router = APIRouter()
 
 @webhook_router.post("/webhook")
+
+#use async becuase webhook taking data from stripe and it is time taking process so to avoid blocking of main thread 
 async def webhook(request: Request, db: Session = Depends(get_db)):
-    # Get raw payload and signature
+    
+    #requesting stripe to give data and sihnature
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature")
 
-    # ✅ Check if webhook secret is set
+    
     if not STRIPE_WEBHOOK_SECRET:
         logger.error("STRIPE_WEBHOOK_SECRET is not set in config!")
         return JSONResponse(
@@ -44,7 +36,7 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
             status_code=500
         )
 
-    # Verify webhook signature
+    # Verify webhook signature jwt provide by stripe and if it is not valid then return error
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, STRIPE_WEBHOOK_SECRET
@@ -56,21 +48,22 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
         logger.error(f"Invalid signature: {e}")
         return JSONResponse(content={"error": "Invalid signature"}, status_code=400)
 
-    # Get subscription object (used in multiple events)
+# Extracting subscription Data from stripe event
+
     subscription = event["data"]["object"]
     subscription_id = subscription.get("id")
     customer_id = subscription.get("customer")
 
-    # EVENT 1: First Login - Customer Subscription Created
+    # logs when Customer Subscription Created
     if event["type"] == "customer.subscription.created":
         logger.info(f"NEW CUSTOMER! Subscription created: {subscription_id}")
         
-        # Find user by Stripe customer ID
+        # checking Stripe customer ID that i take from stripe and compare with customer id in db if it is match then it is valid customer and i can log his email for my reference
         user = db.query(User).filter(User.stripe_customer_id == customer_id).first()
         if user:
             logger.info(f"User {user.email} is now a valid customer!")
 
-    # EVENT 2: Payment Succeeded (Monthly Renewal)
+    # E logs for Payment Succeeded 
     elif event["type"] == "invoice.payment_succeeded":
         logger.info(f"Payment succeeded for subscription: {subscription_id}")
         
@@ -80,7 +73,7 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
             db.commit()
             logger.info(f"User {user.email} access maintained")
 
-    # EVENT 3: Payment Failed
+    # logs for Payment Failed and block user access
     elif event["type"] == "invoice.payment_failed":
         logger.warning(f"Payment FAILED for subscription: {subscription_id}")
         
@@ -90,7 +83,7 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
             db.commit()
             logger.warning(f"User {user.email} access blocked - payment failed")
 
-    # EVENT 4: Subscription Canceled/Deleted
+    # logs for Subscription Canceled/Deleted
     elif event["type"] == "customer.subscription.deleted":
         logger.warning(f"Subscription deleted: {subscription_id}")
         
@@ -100,5 +93,5 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
             db.commit()
             logger.warning(f"User {user.email} access blocked - subscription ended")
 
-    # Always return 200 to Stripe
+    
     return JSONResponse(content={"status": "success"})

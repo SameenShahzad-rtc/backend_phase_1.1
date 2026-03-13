@@ -10,7 +10,7 @@ from models.organization import Organization
 
 
 
-# Set Stripe key
+#  Stripe key
 stripe.api_key = STRIPE_SECRET_KEY
 
 def get_user_by_email(db: Session, email: str):
@@ -23,15 +23,14 @@ def get_user_by_username(db: Session, username: str):
 
 def get_user_by_id(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
-# In handlers/user_handler.py or config
 
 def get_price_id(plan: str) -> str:
     prices = {
-        "basic": "price_1T9MvhGn7y3nRRWTZYkVzkak",  # ← Replace with your Stripe Price ID
+        "basic": "price_1T9MvhGn7y3nRRWTZYkVzkak", 
         "pro": "price_1T9My6Gn7y3nRRWTak0xlrZO"
     }
     return prices.get(plan)
-    # Don't return default — better to fail early
+    # 
 # for super-admin to create user/
 
 # def create_user(db: Session, hashed_password: str,u:User):
@@ -82,10 +81,10 @@ def create_user(db: Session, hashed_password: str,u:User,cur_user:User):
                 org_id=u.org_id,
                 stripe_payment_method_id=u.stripe_payment_method_id,
                 pricing_plan=u.pricing_plan,
-                is_active=False,  # Will be activated on first login
+                is_active=False,  #  active on first login
                 first_login_done=False
             )
-       else:  # role_name == "user"
+       else: 
             if not u.org_id:
                 raise HTTPException(status_code=400, detail="org_id required for user")
             new_user = User(
@@ -114,7 +113,7 @@ def create_user(db: Session, hashed_password: str,u:User,cur_user:User):
         org_id=cur_user.org_id,
         stripe_payment_method_id=u.stripe_payment_method_id,
         pricing_plan=u.pricing_plan,
-        is_active=False,  # Will be activated on first login
+        is_active=False, 
         first_login_done=False
          )
           

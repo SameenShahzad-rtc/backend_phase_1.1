@@ -43,37 +43,40 @@ def userReg(u:UserRegister,db:Session=Depends(get_db),current_user: User = Depen
     
     return create_user(db,hashed_password,u,current_user)
 
-# Users can login
+
+#login routes
 @user_routes.post('/login', response_model=Token)
 def user_login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    # 1. Authenticate user
+# Authenticating user using jwt form
     d_user = authenticate_user(db, form_data.username, form_data.password)
 
-    # 2. If first login and not super_admin → activate subscription
+
+# to check first time login of user and not super_admin  then to activate subscription
     if d_user.role_name != "super_admin" and not d_user.first_login_done:
         try:
-            # ✅ Create Customer + attach test card in one step
+
+#  Creating stripe  Customer + attach test card to customer + create subscription for user
             customer = stripe.Customer.create(
                 email=d_user.email,
                 name=d_user.username,
-                payment_method=d_user.stripe_payment_method_id ,  # ✅ Allowed in test mode  payment_method="pm_card_visa"
+                payment_method=d_user.stripe_payment_method_id ,
                 invoice_settings={
                     "default_payment_method": "pm_card_visa"
                 },
                 metadata={"user_id": d_user.id, "org_id": d_user.org_id}
             )
 
-            # ✅ Create subscription
+            
             subscription = stripe.Subscription.create(
                 customer=customer.id,
                 items=[{"price": get_price_id(d_user.pricing_plan)}],
-                expand=["latest_invoice.payment_intent"]  # Wait for invoice to pay
+                expand=["latest_invoice.payment_intent"] 
             )
 
-            # ✅ Update user in DB
+# Updating user data in DB
             d_user.first_login_done = True
             d_user.is_active = True
             d_user.stripe_customer_id = customer.id
@@ -89,7 +92,7 @@ def user_login(
             db.rollback()
             raise HTTPException(500, f"Payment setup failed: {str(e)}")
 
-    # 3. Generate JWT token
+# Generating JWT token for access
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"id": d_user.id, "username": d_user.username, "role": d_user.role_name},
@@ -159,3 +162,37 @@ def delete_organization(d_id:int,db: Session = Depends(get_db)):
 
 
     return deleteOrganization(db,d_id)
+
+#aadmin can see payment status of all users and org admin can see payment status of users in their org
+
+@user_routes.get("/payment-status", response_model=dict)
+def get_payment_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(role_required(["super_admin", "org_admin"]))
+):
+   
+    if current_user.role_name.lower() == "super_admin":
+        users = db.query(User).filter(User.role_name != "super_admin").all()
+    else:
+        users = db.query(User).filter(User.org_id == current_user.org_id).all()
+    
+    payment_status = []
+    for user in users:
+        payment_status.append({
+            "user_id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role_name,
+            "is_active": user.is_active,
+            "pricing_plan": user.pricing_plan,
+            "stripe_customer_id": user.stripe_customer_id,
+            "stripe_subscription_id": user.stripe_subscription_id,
+            "first_login_done": user.first_login_done
+        })
+    
+    return {
+        "total_users": len(users),
+        "active_subscriptions": sum(1 for u in payment_status if u["is_active"]),
+        "pending_activation": sum(1 for u in payment_status if not u["first_login_done"]),
+        "users": payment_status
+    }
